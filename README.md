@@ -1,3 +1,19 @@
+**Note: this is an incomplete update to mdBook that adds new features**
+
+To render using Pandoc, use the `--pandoc` option.
+
+```
+# Generate a MOBI ebook in rust-book/second-edition/book.mobi
+mdBook --pandoc-format=mobi rust-book/second-edition
+
+# Generates EPUB output in rust-nomicon/book/book.pdf
+mdBook --pandoc-format=epub rust-nomicon
+
+# Use short argument
+mdBook -p=html rust-nomicon
+```
+
+
 # mdBook
 
 <table>

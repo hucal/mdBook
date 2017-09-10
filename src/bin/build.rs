@@ -1,12 +1,14 @@
 use clap::{ArgMatches, SubCommand, App};
 use mdbook::MDBook;
 use mdbook::errors::Result;
+use mdbook::renderer::{HtmlHandlebars, PandocRenderer, Renderer};
 use {get_book_dir, open};
 
 // Create clap subcommand arguments
 pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
     SubCommand::with_name("build")
         .about("Build the book from the markdown files")
+        .arg_from_usage("-p, --pandoc-format=[pandoc-format] 'Use Pandoc and specify the output extension'")
         .arg_from_usage("-o, --open 'Open the compiled book in a web browser'")
         .arg_from_usage("-d, --dest-dir=[dest-dir] 'The output directory for your book{n}(Defaults to ./book when omitted)'")
         .arg_from_usage("--no-create 'Will not create non-existent files linked from SUMMARY.md'")
@@ -17,7 +19,16 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
 // Build command implementation
 pub fn execute(args: &ArgMatches) -> Result<()> {
     let book_dir = get_book_dir(args);
-    let book = MDBook::new(&book_dir).read_config()?;
+    let renderer : Box<Renderer> = if let Some(pandoc_format) = args.value_of("pandoc-format") {
+        let mut renderer = PandocRenderer::new();
+        renderer.set_format(pandoc_format);
+        Box::new(renderer)
+    } else {
+        Box::new(HtmlHandlebars::new())
+    };
+
+    let book = MDBook::new(&book_dir).read_config()?
+        .set_renderer(renderer);
 
     let mut book = match args.value_of("dest-dir") {
         Some(dest_dir) => book.with_destination(dest_dir),
